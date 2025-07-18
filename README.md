@@ -36,7 +36,13 @@ config.vm.network "private_network", ip: "192.168.33.10"
 ```
 I enabled a private network with a static IP address to allow direct communication between the host and guest machine.
 
-### 2. VirtualBox Provider Configuration
+### 2. Boot Timeout Configuration
+```ruby
+config.vm.boot_timeout = 900
+```
+Set the boot timeout to 15 minutes (900 seconds) to allow for slower systems and desktop environment installation.
+
+### 3. VirtualBox Provider Configuration
 ```ruby
 config.vm.provider "virtualbox" do |vb|
   vb.gui = true
@@ -49,17 +55,54 @@ end
 - **CPU cores**: Allocated 2 CPU cores to the VM
 
 ### 3. Provisioning Script
+### 4. Enhanced Provisioning Script
 ```ruby
-config.vm.provision "shell", inline: <<-SHELL
+config.vm.provision "shell", privileged: true, inline: <<-SHELL
+  # System updates
   apt-get update
-  apt-get install -y apache2
-  apt install -y ubuntu-desktop
+  apt-get upgrade -y
+  
+  # Install Xubuntu desktop environment
+  DEBIAN_FRONTEND=noninteractive apt-get install -y xubuntu-desktop lightdm
+  
+  # Configure display manager and graphical target
+  echo "set shared/default-x-display-manager lightdm" | debconf-set-selections
+  systemctl set-default graphical.target
+  
+  # Set French keyboard layout
+  echo 'XKBLAYOUT="fr"' > /etc/default/keyboard
+  dpkg-reconfigure -f noninteractive keyboard-configuration
+  
+  # Install VirtualBox Guest Additions
+  apt-get install -y build-essential dkms linux-headers-$(uname -r)
+  apt-get install -y virtualbox-guest-dkms virtualbox-guest-utils virtualbox-guest-x11
+  
+  # Enable VBoxService
+  systemctl enable vboxservice
+  systemctl start vboxservice
+  
+  reboot
 SHELL
 ```
-Added automatic provisioning to:
-- Update the package list
-- Install Apache2 web server
-- Install Ubuntu Desktop environment (GUI)
+
+## Issues Encountered and Solutions
+
+### Initial Setup Problems
+
+During my first setup attempt, I encountered several issues that required modifications to the Vagrantfile:
+
+1. **Keyboard Layout Issue**: The VM was configured with QWERTY layout by default, but I needed AZERTY (French) layout
+2. **Graphical Interface Problems**: The initial Ubuntu Desktop installation didn't work properly and the GUI wasn't displaying correctly
+
+### Solutions Implemented
+
+To resolve these issues, I made the following changes:
+
+- **Switched to Xubuntu**: Replaced the heavy Ubuntu Desktop with the lighter Xubuntu desktop environment for better performance and compatibility
+- **Added French Keyboard Support**: Configured the system to use French (AZERTY) keyboard layout automatically
+- **Enhanced VirtualBox Integration**: Added proper VirtualBox Guest Additions installation for better host-guest integration
+- **Improved Display Management**: Configured LightDM as the display manager and set the system to boot into graphical mode
+- **Non-interactive Installation**: Used `DEBIAN_FRONTEND=noninteractive` to prevent installation prompts that could hang the provisioning process
 
 ## Starting the Virtual Machine
 
@@ -74,9 +117,11 @@ The command launches a VM on VirtualBox with the following behavior:
 - Creates and configures the VM with the specified settings
 - Starts the VM without GUI enabled
 - Runs the provisioning script to install software
-- Displays the Ubuntu login screen where I need to authenticate
+- Installs Xubuntu desktop environment with French keyboard layout
+- Automatically reboots to apply all changes
+- Displays the Xubuntu login screen with full graphical interface
 
-The VM boots to an Ubuntu Jammy login in a tty interface where I can log.
+The VM now boots successfully into a fully functional Xubuntu desktop environment with French keyboard layout and proper VirtualBox integration.
 
 ## Vagrant Directory Management and GitIgnore
 
@@ -84,4 +129,4 @@ When the virtual machine was launched, I noticed that Vagrant automatically gene
 
 
 ---
-Last update : 18-07-2025
+Last update : 19-07-2025

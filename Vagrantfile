@@ -52,6 +52,9 @@ Vagrant.configure("2") do |config|
   # shown above.
   # config.vm.synced_folder ".", "/vagrant", disabled: true
 
+  # Set the boot timeout to 15 minutes (900 seconds) to allow for slower systems
+  config.vm.boot_timeout = 900
+
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
   # Example for VirtualBox:
@@ -73,9 +76,40 @@ Vagrant.configure("2") do |config|
   # Enable provisioning with a shell script. Additional provisioners such as
   # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
   # documentation for more information about their specific syntax and use.
-  config.vm.provision "shell", inline: <<-SHELL
+  config.vm.provision "shell", privileged: true, inline: <<-SHELL
+
+    echo "[*] Updating and upgrading the system packages..."
     apt-get update
-    apt-get install -y apache2
-    apt install -y ubuntu-desktop # Install Ubuntu Desktop
+    apt-get upgrade -y # Update and upgrade packages
+
+    # Install the desktop environment (lightweight version) and stop interactive prompts
+    echo "[*] Installing Xubuntu desktop environment..."
+    DEBIAN_FRONTEND=noninteractive apt-get install -y xubuntu-desktop lightdm
+
+    # Set lightdm as the default display manager
+    echo "[*] Setting lightdm as the default display manager..."
+    echo "set shared/default-x-display-manager lightdm" | debconf-set-selections
+
+    # Force graphical.target as the default target (graphical interface at boot)
+    echo "[*] Forcing graphical.target as the default target (graphical interface at boot)..."
+    systemctl set-default graphical.target
+    
+    # Make sure the system is set to use the French keyboard layout (pas mal non ? C'est français !)
+    echo "[*] Setting keyboard layout to French..."
+    echo 'XKBLAYOUT="fr"' > /etc/default/keyboard
+    dpkg-reconfigure -f noninteractive keyboard-configuration
+
+    # Install the VirtualBox Guest Additions
+    echo "[*] Installing VirtualBox Guest Additions (Ubuntu package version)..."
+    apt-get install -y build-essential dkms linux-headers-$(uname -r)
+    apt-get install -y virtualbox-guest-dkms virtualbox-guest-utils virtualbox-guest-x11
+
+    # Enable and start the VBoxService service for integration with the host
+    echo "[*] Enabling and starting VBoxService..."
+    systemctl enable vboxservice
+    systemctl start vboxservice
+
+    echo "[*] Provisioning complete. The system will now reboot to apply changes."
+    reboot
   SHELL
 end
