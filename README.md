@@ -26,13 +26,61 @@ vagrant init ubuntu/jammy64
 
 This command generates a basic `Vagrantfile` configured to use the Ubuntu image. This file contains the default configuration that I will modify according to my specific needs.
 
-## Next Steps
+## Vagrantfile Modifications
 
-The generated `Vagrantfile` will be customized to:
-- Configure VM resources (RAM, CPU)
-- Define network settings
-- Add provisioning scripts
-- Configure shared
+I made several modifications to the generated Vagrantfile to customize the VM according to my learning objectives:
+
+### 1. Network Configuration
+```ruby
+config.vm.network "private_network", ip: "192.168.33.10"
+```
+I enabled a private network with a static IP address to allow direct communication between the host and guest machine.
+
+### 2. VirtualBox Provider Configuration
+```ruby
+config.vm.provider "virtualbox" do |vb|
+  vb.gui = true
+  vb.memory = "2048"
+  vb.cpus = 2
+end
+```
+- **GUI enabled**: `vb.gui = true` displays the VirtualBox interface when starting the VM
+- **Memory allocation**: Set to 2048 MB (2 GB) for better performance
+- **CPU cores**: Allocated 2 CPU cores to the VM
+
+### 3. Provisioning Script
+```ruby
+config.vm.provision "shell", inline: <<-SHELL
+  apt-get update
+  apt-get install -y apache2
+  apt install -y ubuntu-desktop
+SHELL
+```
+Added automatic provisioning to:
+- Update the package list
+- Install Apache2 web server
+- Install Ubuntu Desktop environment (GUI)
+
+## Starting the Virtual Machine
+
+After these modifications, when I run:
+
+```bash
+vagrant up
+```
+
+The command launches a VM on VirtualBox with the following behavior:
+- Downloads the Ubuntu Jammy box
+- Creates and configures the VM with the specified settings
+- Starts the VM without GUI enabled
+- Runs the provisioning script to install software
+- Displays the Ubuntu login screen where I need to authenticate
+
+The VM boots to an Ubuntu Jammy login in a tty interface where I can log.
+
+## Vagrant Directory Management and GitIgnore
+
+When the virtual machine was launched, I noticed that Vagrant automatically generated a `.vagrant` folder containing various subdirectories and files that appear to contain sensitive information such as machine IDs and provider-specific configurations. To prevent accidentally pushing these confidential files to the repository, I created a `.gitignore` file to exclude the `.vagrant` directory from version control.
 
 
 ---
