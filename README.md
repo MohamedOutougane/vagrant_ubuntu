@@ -48,13 +48,13 @@ config.vm.provider "virtualbox" do |vb|
   vb.gui = true
   vb.memory = "2048"
   vb.cpus = 2
+  vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
 end
 ```
 - **GUI enabled**: `vb.gui = true` displays the VirtualBox interface when starting the VM
 - **Memory allocation**: Set to 2048 MB (2 GB) for better performance
 - **CPU cores**: Allocated 2 CPU cores to the VM
 
-### 3. Provisioning Script
 ### 4. Enhanced Provisioning Script
 ```ruby
 config.vm.provision "shell", privileged: true, inline: <<-SHELL
@@ -93,6 +93,7 @@ During my first setup attempt, I encountered several issues that required modifi
 
 1. **Keyboard Layout Issue**: The VM was configured with QWERTY layout by default, but I needed AZERTY (French) layout
 2. **Graphical Interface Problems**: The initial Ubuntu Desktop installation didn't work properly and the GUI wasn't displaying correctly
+3. **Mouse and Graphics Controller Issues**: Even after switching to Xubuntu, I still had problems with mouse responsiveness and broken graphical interface
 
 ### Solutions Implemented
 
@@ -103,6 +104,13 @@ To resolve these issues, I made the following changes:
 - **Enhanced VirtualBox Integration**: Added proper VirtualBox Guest Additions installation for better host-guest integration
 - **Improved Display Management**: Configured LightDM as the display manager and set the system to boot into graphical mode
 - **Non-interactive Installation**: Used `DEBIAN_FRONTEND=noninteractive` to prevent installation prompts that could hang the provisioning process
+- **Graphics Controller Fix**: Changed the graphics controller from the default VBoxVGA to VMSVGA for better compatibility with modern desktop environments:
+
+```ruby
+vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
+```
+
+This final modification resolved all the mouse and graphical interface issues I was experiencing. With VMSVGA as the graphics controller, everything now works correctly.
 
 ## Starting the Virtual Machine
 

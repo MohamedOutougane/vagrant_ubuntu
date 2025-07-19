@@ -68,6 +68,9 @@ Vagrant.configure("2") do |config|
 
     # Customize the number of CPUs on the VM:
     vb.cpus = 2
+
+    # Set the graphics controller to VMSVGA for better compatibility with modern desktop environments
+    vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
   end
   #
   # View the documentation for the provider you are using for more
