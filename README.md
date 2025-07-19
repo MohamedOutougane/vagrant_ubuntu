@@ -1,6 +1,51 @@
 # vagrant_ubuntu
 Script to create vms with vagrant
 
+## How to Use This Repository
+
+If you want to use this repository to create your own Ubuntu VM with Xubuntu desktop, follow these simple steps:
+
+### Prerequisites
+- Install Vagrant on your system: [https://developer.hashicorp.com/vagrant/install](https://developer.hashicorp.com/vagrant/install)
+- Install VirtualBox: [https://www.virtualbox.org/wiki/Downloads](https://www.virtualbox.org/wiki/Downloads)
+- Restart your computer after installation
+
+### Steps to Create the VM
+
+1. **Clone this repository**
+   ```bash
+   git clone https://github.com/MohamedOutougane/vagrant_ubuntu.git
+   cd vagrant_ubuntu
+   ```
+
+2. **Start the virtual machine**
+   ```bash
+   vagrant up
+   ```
+   
+   This command will:
+   - Download the Ubuntu Jammy box (first time only)
+   - Create and configure the VM
+   - Install Xubuntu desktop environment
+   - Configure French keyboard layout
+   - Install VirtualBox Guest Additions
+   - Reboot the VM
+
+3. **Access your VM**
+   - The VM will open with a graphical interface
+   - Login with username: `vagrant` and password: `vagrant`
+   - Enjoy your Ubuntu desktop environment!
+
+### Useful Commands
+- `vagrant halt` - Stop the VM
+- `vagrant destroy` - Delete the VM completely
+- `vagrant ssh` - Connect to the VM via SSH
+- `vagrant reload` - Restart the VM
+
+---
+
+
+## Project Development Process
 ## Project Objective
 
 This project aims to learn how to create and manage virtual machines with Vagrant. It's a hands-on approach to understand virtualization concepts and infrastructure as code.
